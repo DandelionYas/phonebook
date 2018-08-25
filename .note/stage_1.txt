@@ -1,0 +1,4 @@
+1. Phonebook structure
+2. menu
+3. model
+4. local repository (RAM)
