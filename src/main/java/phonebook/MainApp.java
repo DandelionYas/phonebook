@@ -1,9 +1,9 @@
 package phonebook;
 
 
-import phonebook.da.StatementFactory;
-import phonebook.exception.Contact;
-import phonebook.model.ContactsRepository;
+import phonebook.data.access.StatementFactory;
+import phonebook.data.model.Contact;
+import phonebook.data.access.ContactsRepository;
 import phonebook.util.SequenceGenerator;
 
 import java.io.File;
@@ -37,9 +37,9 @@ public class MainApp {
         File file = new File(classLoader.getResource("config/database.properties").getFile());
         try {
             Scanner scanner = new Scanner(file);
-            STATEMENT_FACTORY.setUsername(scanner.nextLine().substring(15));
-            STATEMENT_FACTORY.setPassword(scanner.nextLine().substring(15));
-            STATEMENT_FACTORY.setUrl(scanner.nextLine().substring(10));
+            STATEMENT_FACTORY.setUsername(scanner.nextLine().substring(14));
+            STATEMENT_FACTORY.setPassword(scanner.nextLine().substring(14));
+            STATEMENT_FACTORY.setUrl(scanner.nextLine().substring(9));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -160,8 +160,8 @@ public class MainApp {
         }
     }
 
-    private static long getLongFromInput() {
-        return SCANNER.nextLong();
+    private static int getLongFromInput() {
+        return SCANNER.nextInt();
     }
 
     private static String getStringFromInput() {
@@ -179,7 +179,7 @@ public class MainApp {
 
     private static void deleteContact() {
         System.out.println("Please Enter the ID of Contact:");
-        Long ID = getLongFromInput();
+        int ID = getLongFromInput();
         try{
             CONTACTS_REPOSITORY.deleteContactByID(ID);
             System.out.println("Contact with ID="+ID+" successfully deleted.\n");
@@ -213,7 +213,6 @@ public class MainApp {
     private static void saveNewContact() {
 
         Contact newContact = new Contact();
-        newContact.setId(SequenceGenerator.getNextID());
         System.out.println("Please enter first name:");
         newContact.setFirstName(getStringFromInput());
         System.out.println("Please enter last name:");

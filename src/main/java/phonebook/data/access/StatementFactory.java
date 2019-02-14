@@ -1,4 +1,4 @@
-package phonebook.da;
+package phonebook.data.access;
 
 
 import java.sql.DriverManager;

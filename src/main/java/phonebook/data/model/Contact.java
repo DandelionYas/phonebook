@@ -1,21 +1,21 @@
-package phonebook.exception;
+package phonebook.data.model;
 
 import java.io.Serializable;
 
 public class Contact implements Serializable {
 
-    private Long id;
+    private int id;
     private String firstName;
     private String lastName;
     private String mobileNum;
     private String phoneNum;
     private String address;
 
-    public Long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
