@@ -1,0 +1,22 @@
+sudo mysqladmin -u root password
+yourpassword
+
+mysql -u root -p
+yourpassword
+
+CREATE DATABASE phonebook;
+
+USE phonebook;
+
+CREATE TABLE IF NOT EXISTS contact (
+     id INT AUTO_INCREMENT,
+     firstName VARCHAR(255) NOT NULL,
+     lastName VARCHAR(255) NOT NULL,
+     mobileNum VARCHAR(255),
+     phoneNum VARCHAR(255),
+     address VARCHAR(255),
+     PRIMARY KEY (id) );
+
+
+CREATE USER 'harold'@'localhost' IDENTIFIED BY '1234';
+GRANT ALL PRIVILEGES ON phonebook.* TO 'harold'@'localhost';
