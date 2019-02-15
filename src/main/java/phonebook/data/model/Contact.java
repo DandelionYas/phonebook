@@ -1,7 +1,11 @@
 package phonebook.data.model;
 
+import javax.persistence.*;
 import java.io.Serializable;
 
+@Entity
+@Table(name = "contact")
+@Access(value = AccessType.PROPERTY)
 public class Contact implements Serializable {
 
     private int id;
@@ -11,6 +15,8 @@ public class Contact implements Serializable {
     private String phoneNum;
     private String address;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int getId() {
         return id;
     }
@@ -19,6 +25,7 @@ public class Contact implements Serializable {
         this.id = id;
     }
 
+    @Column(name = "firstName")
     public String getFirstName() {
         return firstName;
     }
@@ -27,18 +34,21 @@ public class Contact implements Serializable {
         this.firstName = firstName;
     }
 
+    @Column(name = "lastName")
     public String getLastName() { return lastName; }
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
+    @Column(name = "mobileNum")
     public String getMobileNum() {        return mobileNum;    }
 
     public void setMobileNum(String mobileNum) {
         this.mobileNum = mobileNum;
     }
 
+    @Column(name = "phoneNum")
     public String getPhoneNum() {
         return phoneNum;
     }
@@ -47,6 +57,7 @@ public class Contact implements Serializable {
         this.phoneNum = phoneNum;
     }
 
+    @Column(name = "address")
     public String getAddress() {
         return address;
     }

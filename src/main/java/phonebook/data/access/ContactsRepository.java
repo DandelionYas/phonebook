@@ -1,131 +1,102 @@
 package phonebook.data.access;
 
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.criterion.LogicalExpression;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import phonebook.data.model.Contact;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.String.format;
-
 public class ContactsRepository {
-    private StatementFactory statementFactory;
+    private SessionFactory sessionFactory;
 
-    public ContactsRepository(StatementFactory statementFactory) {
-        this.statementFactory = statementFactory;
+    public ContactsRepository(SessionFactory sessionFactory){
+        this.sessionFactory = sessionFactory;
     }
 
-    public boolean saveContact(Contact contact) throws SQLException {
-        String insertQuery = "INSERT INTO contact( firstName, lastName, phoneNum, mobileNum, address)" +
-                " VALUES ('" +
-                contact.getFirstName() + "','" +
-                contact.getLastName() + "','" +
-                contact.getPhoneNum() + "','" +
-                contact.getMobileNum() + "','" +
-                contact.getAddress() +
-                "')";
-
-        Statement mysqlStatement = statementFactory.get();
-        mysqlStatement.executeUpdate(insertQuery);
-        mysqlStatement.close();
+    public boolean saveContact(Contact inputContact) {
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+        session.save(inputContact);
+        session.getTransaction().commit();
+        session.close();
         return true;
     }
 
-    public void updateContact(Contact contact) throws Exception {
-        String updateQuery = "UPDATE contact SET ";
-        StringBuilder updateFields = new StringBuilder();
-        String whereString = format(" WHERE ID = %s", contact.getId());
+    public void updateContact(Contact inputContact) {
 
-        if (!contact.getFirstName().isEmpty()) {
-            updateFields.append(format(" firstName = '%s',", contact.getFirstName()));
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        Contact persistantContact = session.get(Contact.class, inputContact.getId());
+
+        if(!inputContact.getFirstName().isEmpty()){
+            persistantContact.setFirstName(inputContact.getFirstName());
+        }
+        if(!inputContact.getLastName().isEmpty()){
+            persistantContact.setLastName(inputContact.getLastName());
+        }
+        if(!inputContact.getPhoneNum().isEmpty()){
+            persistantContact.setPhoneNum(inputContact.getPhoneNum());
+        }
+        if(!inputContact.getMobileNum().isEmpty()){
+            persistantContact.setMobileNum(inputContact.getMobileNum());
+        }
+        if(!inputContact.getAddress().isEmpty()){
+            persistantContact.setAddress(inputContact.getAddress());
         }
 
-        if (!contact.getLastName().isEmpty()) {
-            updateFields.append(format(" lastName = '%s',", contact.getLastName()));
-        }
-
-        if (!contact.getMobileNum().isEmpty()) {
-            updateFields.append(format(" mobileNum = '%s',", contact.getMobileNum()));
-        }
-
-        if (!contact.getPhoneNum().isEmpty()) {
-            updateFields.append(format(" phoneNum = '%s',", contact.getPhoneNum()));
-        }
-
-        if (!contact.getAddress().isEmpty()) {
-            updateFields.append(format(" address = '%s',", contact.getAddress()));
-        }
-
-        if (updateFields.toString().isEmpty()) {
-            System.out.println("There was no information to be updated.");
-            return;
-        }
-
-        Statement statement = statementFactory.get();
-        statement.executeUpdate(updateQuery + updateFields.substring(0, updateFields.length() - 1) + whereString);
-        statement.close();
-        System.out.println("Contact updated successfully.");
+        session.getTransaction().commit();
+        session.close();
     }
 
-    public Contact findContactByNameAndFamily(String name, String family) throws SQLException {
+    // TODO: 7/22/18 Use DataTransferObject (DTO) pattern
+    public List<Contact> findByNameAndFamily(Contact inputContact) {
 
-        String selectQuery = "SELECT * FROM contact WHERE firstName = '" + name +
-                "' and lastName = '" + family + "'";
-        Statement mysqlStatement = statementFactory.get();
-        ResultSet resultSet = mysqlStatement.executeQuery(selectQuery);
-        Contact foundContact = null;
-        if (resultSet.next()) {
-            foundContact = createContactFromResultSet(resultSet);
-        }
-        mysqlStatement.close();
-        return foundContact;
+        List<Contact> foundContacts;
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        /*String hql = "FROM Contact C WHERE C.firstName = :first_name AND C.lastName = :last_name";
+        Query query = session.createQuery(hql);
+        query.setParameter("first_name", name);
+        query.setParameter("last_name", family);
+        foundContacts = query.list();*/
+
+        Criteria criteria = session.createCriteria(Contact.class);
+        LogicalExpression logicalExpression =
+                Restrictions.and(
+                        Restrictions.eq("firstName", inputContact.getFirstName()),
+                        Restrictions.eq("lastName",inputContact.getLastName())  );
+        criteria.add(logicalExpression);
+        foundContacts = criteria.list();
+
+
+        return foundContacts;
     }
 
-
-    public boolean deleteContactByID(int ID) throws SQLException {
-
-        String selectQuery = "DELETE FROM contact WHERE id ='" + ID + "'";
-        Statement dataBaseStatement = statementFactory.get();
-        dataBaseStatement.executeUpdate(selectQuery);
-        dataBaseStatement.close();
+    public boolean deleteByID(int id) {
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+        Contact persistantContact = session.get(Contact.class,id);
+        session.delete(persistantContact);
+        session.getTransaction().commit();
+        session.close();
         return true;
     }
 
-    public Contact findContactByID(Long ID) throws SQLException {
-        String selectQuery = "SELECT * FROM contact WHERE id = '" + ID + "'";
-        Statement mysqlStatement = statementFactory.get();
-        ResultSet resultSet = mysqlStatement.executeQuery(selectQuery);
-        if (!resultSet.next()) {
-            return null;
-        }
-        return createContactFromResultSet(resultSet);
-    }
-
-    private Contact createContactFromResultSet(ResultSet resultSet) throws SQLException {
-
-        Contact foundContact = new Contact();
-        foundContact.setId(resultSet.getInt("id"));
-        foundContact.setFirstName(resultSet.getString("firstName"));
-        foundContact.setLastName(resultSet.getString("lastName"));
-        foundContact.setPhoneNum(resultSet.getString("phoneNum"));
-        foundContact.setMobileNum(resultSet.getString("mobileNum"));
-        foundContact.setAddress(resultSet.getString("address"));
-
-        return foundContact;
-
-    }
-
-    public List<Contact> getAll() throws SQLException {
-        List<Contact> contacts = new ArrayList<>();
-        String selectQuery = "SELECT * FROM contact";
-        Statement mysqlStatement = statementFactory.get();
-        ResultSet resultSet = mysqlStatement.executeQuery(selectQuery);
-        while (resultSet.next()) {
-            contacts.add(createContactFromResultSet(resultSet));
-        }
-
+    public List<Contact> getAll() {
+        List<Contact> contacts;
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+        String hql = "FROM Contact";
+        Query query = session.createQuery(hql);
+        contacts = query.list();
+        session.getTransaction().commit();
+        session.close();
         return contacts;
     }
 }
